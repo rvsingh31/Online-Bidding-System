@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+	<head>
+	   <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+		<title>
+			Manage Products
+		</title>
+	  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<style>
+		.collapsible-body{
+			background:#A8CAFF;color:#222233;
+		}
+		.collapsible-header{
+			background:#A8CAFF;color:#222233;
+		}
+	</style>
+	</head>
+	
+	<body ng-app="admin" ng-controller="validate" style="background:#222233">
+		<nav style="background:#A8CAFF">
+			<div class="nav-wrapper">
+				<a href="/ad_panel" style="padding:2%;color:#222233">Home</a>
+				<ul id="nav-mobile" class="right hide-on-med-and-down">
+					<li><a style="color:#222233" class="light" href="/verify_products">Verify Products</a></li>
+				</ul>
+			</div>
+		</nav>
+		<br><br><br>
+			
+			<div class="row">
+				<div class="col s12 m1 l1"> </div>	
+					<div class="col s12 m10 l10" style="color:#222233" id="avail_products_div" ng-controller="getProducts">
+						<h6 class="light center" style="font-size:1.2em;color:#A8CAFF">MANAGE PRODUCTS</h6>
+						<br>
+							<ul class="collapsible popout" id="all_p" data-collapsible="accordion">
+								<li ng-repeat="key in records">
+									<div class="collapsible-header" >{{key.name}}</div>
+									<div class="collapsible-body">
+										<p>Description: {{key.desc}}</p>
+										<p>Base Price: {{key.base_price}}</p>
+										<p>Listed for Auction: {{key.auction_id}}</p>
+										<p>Owner Name: {{key.owner.fname}} {{key.owner.lname}}</p>
+										<p>Owner Contact Number: {{key.owner.contact}} </p>
+										<p>Verification Status: {{key.verified}}</p>
+										<div class='right'>
+											<button class='btn waves-effect waves-light' id="{{key._id}}" onclick="verify(this.id)" style='background:#222233;color:#A8CAFF;'>Verify</button>
+										</div>
+										<br>
+									</div>
+								</li>
+							
+							</ul>
+							<div id="all_products">
+							</div>
+					
+					</div>
+				<div class="col s12 m1 l1"></div>
+			</div>
+		
+
+			<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script>
+
+    
+	<script>
+	
+	$(document).ready(function() {
+		$('select').material_select();
+		$('.tooltipped').tooltip();	
+		$('.collapsible').collapsible();
+
+	});
+          
+		var main=angular.module('admin',[]);
+			main.controller('validate',function($scope,AuthService){
+				$scope.check=function(){
+					if(AuthService.getId()=="no")
+					{
+						window.location='/';
+					}
+				};
+				$scope.check();
+			});
+			
+
+
+			main.factory('AuthService', function() {
+				var factory = {};
+		
+				factory.getId=function()
+								{
+									if(window.localStorage.getItem('admin_id')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('admin_id');
+									}
+									
+								};				
+						
+				return factory;
+			});
+			
+			main.controller('getProducts',function($scope,$http){
+				$scope.records=[];
+				$scope.getAllProducts=function ()
+				{
+						$http({
+												url:'/list_products_admin',
+												method:'GET',
+											}).success(function(resp){
+												document.getElementById("all_products").innerHTML="";
+											if(resp.products=="No Products to Verify")
+												{
+														$("#all_p").slideUp();
+													document.getElementById("all_products").innerHTML="<br><br><h6 class='center light' style='color:#A8CAFF'>"+resp.products+"</h6><br><br>";
+												}
+												else
+												{
+													data=angular.fromJson(resp.products);
+													$scope.records=data;
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				};
+				
+				$scope.verifyProduct=function (id)
+				{
+						$http({
+												url:'/verify_product',
+												method:'POST',
+												data:{id:id}
+											}).success(function(resp){
+														Materialize.toast('Product Verified!',2000,'rounded');
+													$scope.getAllProducts();
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				};
+				
+				
+				$scope.getAllProducts();
+				
+			});
+			
+			function verify(id)
+			{
+				var scope = angular.element(document.getElementById("avail_products_div")).scope();
+						scope.$apply(function () {
+								scope.verifyProduct(id);
+						});
+							
+			}
+			
+		</script>
+	</body>
+</html>

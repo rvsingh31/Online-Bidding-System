@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+
+	<head>
+	   <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+		<title>
+			ADMIN-HOME
+		</title>
+	  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	
+	</head>
+	
+	<body ng-app="admin" ng-controller="validate" style="background:#222233">
+		<nav style="background:#A8CAFF">
+			<div class="nav-wrapper">
+				<a href="/ad_panel" style="padding:2%;color:#222233">Home</a>
+				<ul id="nav-mobile" class="right hide-on-med-and-down">
+					<li><a style="color:#222233" class="light" href="#create_auction_modal">New Auction</a></li>
+					<li><a style="color:#222233" class="light" href="/verify_products">Verify Products</a></li>
+					<li><a style="color:#222233" class="light" onclick="logout()">Log Out</a></li>
+				</ul>
+			</div>
+		</nav>
+		<br><br><br>
+			<div class="row">
+				<div class="col s12 m1 l1"> </div>	
+					<div class="col s12 m10 l10 card" style="background:#A8CAFF;color:#222233" id="avail_auctions_div" ng-controller="getAuctions">
+						<h6 class="light center" style="font-size:1.2em">MANAGE AUCTIONS</h6>
+						<div class="divider" style="background:#222233"></div>
+						<div id="all_auctions" style="height:27em;overflow-y:auto">
+							
+							</div>
+					</div>
+				<div class="col s12 m1 l1"></div>
+			</div>
+			
+			
+		
+			<div id="create_auction_modal" class="modal" >
+				<div class="modal-content">
+					<h5 class='light'>Create New Auction</h5>
+						<form id="create_auction" ng-controller="createCtrl">
+							<div class="input-field col s12">
+								<input type="text" name="name" ng-model='d.name' style="color:#222233" id="name">
+								<label for="name" style="color:#222233">Name of Auction</label>
+							</div>
+							<div class="input-field col s12">
+								<input type="date" class="datepicker" ng-model="d.dated" name="dated" id="dated" >
+								<label for="dated" style="color:#222233">Date of Auction</label>
+							</div>
+							<div class="input-field col s12">
+								<input type="text" name="duration" ng-model='d.duration' style="color:#222233" id="duration">
+								<label for="duration" style="color:#222233">Duration of one bid(in minutes)</label>
+							</div>
+							
+							<div class="input-field col s12">
+							<select name="time" id="time">
+								<option value="00:00">12:00am</option>
+								<option value="01:00">01:00am</option>
+								<option value="02:00">02:00am</option>
+								<option value="03:00">03:00am</option>
+								<option value="04:00">04:00am</option>
+								<option value="05:00">05:00am</option>
+								<option value="06:00">06:00am</option>
+								<option value="07:00">07:00am</option>
+								<option value="08:00">08:00am</option>
+								<option value="09:00">09:00am</option>
+								<option value="10:00">10:00am</option>
+								<option value="11:00">11:00am</option>
+								<option value="12:00">12:00pm</option>
+								<option value="13:00">13:00pm</option>
+								<option value="14:00">14:00pm</option>
+								<option value="15:00">15:00pm</option>
+								<option value="16:00">16:00pm</option>
+								<option value="17:00">17:00pm</option>
+								<option value="18:00">18:00pm</option>
+								<option value="19:00">19:00pm</option>
+								<option value="20:00">20:00pm</option>
+								<option value="21:00">21:00pm</option>
+								<option value="22:00">22:00pm</option>
+								<option value="23:00">23:00pm</option>
+								
+								
+							</select>
+							<label>Start Time of Auction</label>
+							</div>
+  
+							<div class="center">
+								<button class="btn waves-light waves-effect" type="button" onclick="create()" style="background:#222233;color:#A8CAFF">CREATE AUCTION</button>
+							</div>
+							<br>
+						</form>
+				</div>
+				<div class="modal-footer">
+					<a href="#!" class="modal-action modal-close waves-effect waves-blue red-text right btn-flat">Close</a>
+				</div>
+			</div>
+			
+			
+			<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script>
+
+    
+	<script>
+	
+	$(document).ready(function() {
+		$('select').material_select();
+		$('.tooltipped').tooltip();	
+		$('.modal').modal();
+	});
+          
+		var main=angular.module('admin',[]);
+			main.controller('validate',function($scope,AuthService){
+				$scope.check=function(){
+					if(AuthService.getId()=="no")
+					{
+						window.location='/';
+					}
+				};
+				$scope.check();
+			});
+			
+			main.controller('getAuctions' , function($scope,$http,$rootScope){
+				
+				$scope.get=function(){
+									
+									var element="";
+										$http({
+												url:'/list_auctions_admin',
+												method:'GET',
+											}).success(function(resp){
+												document.getElementById("all_auctions").innerHTML="";
+											if(resp.auctions=="No Auctions to Show")
+												{
+													document.getElementById("all_auctions").innerHTML="<br><br><h6 class='center white-text'>"+resp.auctions+"</h6><br><br>";
+												}
+												else
+												{
+													data=JSON.parse(resp.auctions);
+													var ac=1;
+													data.forEach(function(key,value){
+														element+="<br><div class='row'><div class='col s12 m4 l4'><h5 class='light'>"+key.name+"</h5></div><div class='col s12 m4 l4'><button class='btn waves-effect waves-light' id='auction"+ac+"' onclick='show_menu(this.id)' style='background:#083045;color:#A8CAFF'>MENU</button></div><div class='col s12 m4 l4'><button class='btn waves-effect waves-light' id='auction"+ac+"_cr_btn' onclick='create_auc(this.id)'  data-id='"+key._id+"' style='background:#083045;color:#A8CAFF'>CREATE TABLES</button></div></div><br>";
+														element+="<div class='row center' id='auction"+ac+"_menu_div' data-value='"+ac+"' data-id='"+key._id+"' style='display:none'>";
+														if(key.enabled=="no")
+														{
+															element+="<div class='col s6 m3 l3' id='"+ac+"_en_div'><a class='btn waves-effect waves-light tooltipped' data-position='top' data-delay='50' data-tooltip='Enable Auction' onclick='enable_auc(this.id)' style='background:#083045;color:#A8CAFF' id='"+ac+"_enable_btn'><i class='material-icons'>done</i></a></div>";
+															element+="<div class='col s6 m3 l3' id='"+ac+"_dis_div' style='display:none'><a class='btn waves-effect waves-light tooltipped' data-position='top' data-delay='50' data-tooltip='Disable Auction' onclick='disable_auc(this.id)' style='background:#083045;color:#A8CAFF' id='"+ac+"_disable_btn'><i class='material-icons'>do_not_disturb</i></a></div>";
+														}
+														else
+														{
+															element+="<div class='col s6 m3 l3' id='"+ac+"_en_div' style='display:none'><a class='btn waves-effect waves-light tooltipped' data-position='top' data-delay='50' data-tooltip='Enable Auction' onclick='enable_auc(this.id)'  style='background:#083045;color:#A8CAFF' id='"+ac+"_enable_btn'><i class='material-icons'>done</i></a></div>";
+															element+="<div class='col s6 m3 l3' id='"+ac+"_dis_div'><a class='btn waves-effect waves-light tooltipped' style='background:#083045;color:#A8CAFF' data-position='top' data-delay='50' data-tooltip='Disable Auction' onclick='disable_auc(this.id)' id='"+ac+"_disable_btn'><i class='material-icons'>do_not_disturb</i></a></div>";
+														}
+														if(key.uploading=="no")
+														{
+															element+="<div class='col s6 m3 l3' id='"+ac+"_up_on_div'><a class='btn waves-effect waves-light tooltipped' data-position='top' data-delay='50' onclick='ch_up(this.id,\"yes\")' data-tooltip='Enable Uploads'  style='background:#083045;color:#A8CAFF' id='"+ac+"_up_on_btn'><i class='material-icons'>add</i></a></div>";
+															element+="<div class='col s6 m3 l3' id='"+ac+"_up_off_div' style='display:none'><a class='btn waves-effect waves-light tooltipped' data-position='top'  onclick='ch_up(this.id,\"no\")' data-delay='50' data-tooltip='Stop Uploading'  style='background:#083045;color:#A8CAFF' id='"+ac+"_up_off_btn'><i class='material-icons'>present_to_all</i></a></div>";
+														}
+														else
+														{
+															element+="<div class='col s6 m3 l3' id='"+ac+"_up_on_div' style='display:none'><a class='btn waves-effect waves-light tooltipped' data-position='top' onclick='ch_up(this.id,\"yes\")' data-delay='50' data-tooltip='Enable Auction'  style='background:#083045;color:#A8CAFF' id='"+ac+"_up_on_btn'><i class='material-icons'>add</i></a></div>";
+															element+="<div class='col s6 m3 l3' id='"+ac+"_up_off_div'><a class='btn waves-effect waves-light tooltipped' style='background:#083045;color:#A8CAFF'  onclick='ch_up(this.id,\"no\")' data-position='top' data-delay='50' data-tooltip='Stop Uploading'  id='"+ac+"_up_off_btn'><i class='material-icons'>present_to_all</i></a></div>";
+														}
+														
+														if(key.start=="no")
+														{
+															element+="<div class='col s6 m3 l3' id='"+ac+"_start_div'><a class='btn waves-effect waves-light tooltipped' data-position='top' data-delay='50' data-tooltip='Start Auction'  onclick='start_stop_auc(this.id,\"yes\")'  style='background:#083045;color:#A8CAFF' id='"+ac+"_start_btn'><i class='material-icons'>play_arrow</i></a></div>";
+															element+="<div class='col s6 m3 l3' id='"+ac+"_stop_div' style='display:none'><a class='btn waves-effect waves-light tooltipped' data-position='top' data-delay='50' data-tooltip='Stop Auction'   onclick='start_stop_auc(this.id,\"no\")'  style='background:#083045;color:#A8CAFF' id='"+ac+"_stop_btn'><i class='material-icons'>stop</i></a></div>";
+														}
+														else
+														{
+															element+="<div class='col s6 m3 l3' id='"+ac+"_start_div' style='display:none'><a class='btn waves-effect waves-light tooltipped' data-position='top'  onclick='start_stop_auc(this.id,\"yes\")'  data-delay='50' data-tooltip='Start Auction'  style='background:#083045;color:#A8CAFF' id='"+ac+"_start_btn'><i class='material-icons'>play_arrow</i></a></div>";
+															element+="<div class='col s6 m3 l3'  id='"+ac+"_stop_div'><a class='btn waves-effect waves-light tooltipped' style='background:#083045;color:#A8CAFF'  onclick='start_stop_auc(this.id,\"no\")'  data-position='top' data-delay='50' data-tooltip='Stop Auction'  id='"+ac+"_stop_btn'><i class='material-icons'>stop</i></a></div>";
+														}
+														
+																element+="<div class='col s6 m3 l3'><a class='btn waves-effect waves-light tooltipped'  onclick='delete_auc(this.id)'  style='background:#083045;color:#A8CAFF' data-position='top' data-delay='50' data-tooltip='Delete Auction'  id='"+ac+"_delete_btn'><i class='material-icons'>clear</i></a></div>";
+														element+="</div>";
+														ac++;
+													});
+													document.getElementById("all_auctions").innerHTML=element;
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				
+				};
+			
+				$rootScope.$on("CallGetMethod", function(){
+					$scope.get();
+				});
+
+				
+				
+				$scope.update=function(id){
+										$http({
+												url:'/enable_auction',
+												method:'POST',
+												data:{auc_id:id}
+											}).success(function(resp){
+												if(resp.done=="yes")
+												{
+														Materialize.toast('Auction Enabled!',2000,'rounded');
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				
+							};
+							
+							$scope.createTables=function(id){
+										$http({
+												url:'/create_tables_auction',
+												method:'POST',
+												data:{auc_id:id}
+											}).success(function(resp){
+												if(resp.done=="yes")
+												{
+														Materialize.toast('Tables Created for Auction!',2000,'rounded');
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				
+							};
+							
+							$scope.change_uploading=function(id,val){
+										$http({
+												url:'/change_uploading',
+												method:'POST',
+												data:{auc_id:id,str:val}
+											}).success(function(resp){
+												if(resp.done=="yes")
+												{
+														Materialize.toast('Uploading Enabled for Auction!',2000,'rounded');
+												}
+												else if(resp.done=="no")
+												{
+														Materialize.toast('Uploading Disabled for Auction!',2000,'rounded');
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				
+							};
+							
+							
+							$scope.startToggle=function(id,val){
+										$http({
+												url:'/start_stop',
+												method:'POST',
+												data:{auc_id:id,str:val}
+											}).success(function(resp){
+												if(resp.done=="yes")
+												{
+														Materialize.toast('Auction Started!',2000,'rounded');
+												}
+												else if(resp.done=="no")
+												{
+														Materialize.toast('Auction Stopped!',2000,'rounded');
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				
+							};
+							
+							$scope.deleteAuction=function(id){
+										$http({
+												url:'/delete_auc',
+												method:'POST',
+												data:{auc_id:id}
+											}).success(function(resp){
+												if(resp.done=="yes")
+												{
+														Materialize.toast('Auction Deleted!',2000,'rounded');
+															$scope.get();
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured .!',2000,'rounded');
+											})
+				
+							};
+							
+							$scope.disable=function(id){
+										$http({
+												url:'/do_disable_auction',
+												method:'POST',
+												data:{auc_id:id}
+											}).success(function(resp){
+												if(resp.done=="yes")
+												{
+														Materialize.toast('Auction Disabled! ',2000,'rounded');
+												}
+											})
+											.error(function() {	
+												Materialize.toast('Error Occured!',2000,'rounded');
+											})
+				
+							};
+				
+				
+				$scope.get();
+			
+			});
+			
+			main.controller('createCtrl',function($scope,$http,$rootScope){
+				$scope.d={
+					name:'',
+					dated:'',
+					duration:'',
+					time:''
+					
+				};
+					
+				$scope.createAc=function(){
+					$scope.d.dated=document.getElementById("dated").value;
+					$scope.d.time=document.getElementById("time").value;
+									$http({
+											url:'/createAuction',
+											method:'POST',
+											data:$scope.d
+										}).success(function(resp){
+											Materialize.toast(resp.msg,2000,'rounded');
+											 $rootScope.$emit("CallGetMethod", {});
+										})
+										.error(function() {	
+											Materialize.toast('Error Occured .!',2000,'rounded');
+										})
+								};
+				
+			});
+			
+			main.factory('AuthService', function() {
+				var factory = {};
+		
+				factory.getId=function()
+								{
+									if(window.localStorage.getItem('admin_id')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('admin_id');
+									}
+									
+								};				
+						
+				return factory;
+			});
+			
+			$(document).ready(function(){
+				$('.datepicker').pickadate({
+					selectMonths: true,
+					selectYears: 15,
+					format:'dd/mm/yyyy'
+				});
+			
+			});
+			
+			function create()
+			{
+					var input1=document.getElementById("name").value;
+					var input2=document.getElementById("dated").value;
+					var input3=document.getElementById("duration").value;
+				
+					if(input1 =='' ||input2=='' || input3=='')
+					{
+							Materialize.toast('All fields are necessary.',2000,'rounded');
+					}
+					else
+					{
+						var scope = angular.element(document.getElementById("create_auction")).scope();
+						scope.$apply(function () {
+								scope.createAc();
+						});
+					}
+			}
+			
+			function enable_auc(id)
+			{
+				var g_id=$("#"+id).parent().parent().data('id');
+				var scope = angular.element(document.getElementById("avail_auctions_div")).scope();
+						scope.$apply(function () {
+								scope.update(g_id);
+						});
+				
+				var parent_value=$("#"+id).parent().parent().data('value');
+						show_div_id=parent_value+"_dis_div";
+						hide_div_id=parent_value+"_en_div";
+						$("#"+hide_div_id).hide();
+						setTimeout(function(){
+							$("#"+show_div_id).show();
+						},400);
+			}
+			
+			function delete_auc(id)
+			{
+				var g_id=$("#"+id).parent().parent().data('id');
+				var scope = angular.element(document.getElementById("avail_auctions_div")).scope();
+						scope.$apply(function () {
+								scope.deleteAuction(g_id);
+						});
+			}
+			
+			function ch_up(id,val)
+			{
+				var g_id=$("#"+id).parent().parent().data('id');
+				var scope = angular.element(document.getElementById("avail_auctions_div")).scope();
+						scope.$apply(function () {
+								scope.change_uploading(g_id,val);
+						});
+				if(val=="yes")
+				{
+					var parent_value=$("#"+id).parent().parent().data('value');
+						show_div_id=parent_value+"_up_off_div";
+						hide_div_id=parent_value+"_up_on_div";
+						$("#"+hide_div_id).hide();
+						setTimeout(function(){
+							$("#"+show_div_id).show();
+						},400);
+				}
+				else
+				{
+					var parent_value=$("#"+id).parent().parent().data('value');
+						show_div_id=parent_value+"_up_on_div";
+						hide_div_id=parent_value+"_up_off_div";
+						$("#"+hide_div_id).hide();
+						setTimeout(function(){
+							$("#"+show_div_id).show();
+						},400);
+				}
+				
+			}
+			
+			function create_auc(id)
+			{
+					var g_id=$("#"+id).data('id');
+					var scope = angular.element(document.getElementById("avail_auctions_div")).scope();
+						scope.$apply(function () {
+								scope.createTables(g_id);
+						});
+				
+			}
+			
+			function start_stop_auc(id,val)
+			{
+					var g_id=$("#"+id).parent().parent().data('id');
+					var scope = angular.element(document.getElementById("avail_auctions_div")).scope();
+						scope.$apply(function () {
+								scope.startToggle(g_id,val);
+						});	
+						
+					if(val=="yes")
+				{
+					var parent_value=$("#"+id).parent().parent().data('value');
+						show_div_id=parent_value+"_stop_div";
+						hide_div_id=parent_value+"_start_div";
+						$("#"+hide_div_id).hide();
+						setTimeout(function(){
+							$("#"+show_div_id).show();
+						},400);
+				}
+				else
+				{
+					var parent_value=$("#"+id).parent().parent().data('value');
+						show_div_id=parent_value+"_start_div";
+						hide_div_id=parent_value+"_stop_div";
+						$("#"+hide_div_id).hide();
+						setTimeout(function(){
+							$("#"+show_div_id).show();
+						},400);
+				}
+			}
+			
+			
+			
+			function disable_auc(id)
+			{
+					var g_id=$("#"+id).parent().parent().data('id');
+					var scope = angular.element(document.getElementById("avail_auctions_div")).scope();
+						scope.$apply(function () {
+								scope.disable(g_id);
+						});
+									
+						var parent_value=$("#"+id).parent().parent().data('value');
+						show_div_id=parent_value+"_en_div";
+						hide_div_id=parent_value+"_dis_div";
+						$("#"+hide_div_id).hide();
+						setTimeout(function(){
+							$("#"+show_div_id).show();
+						},400);
+				
+			}
+			
+			function show_menu(id)
+			{
+					menu_id=id+"_menu_div";
+					
+					if($("#"+menu_id).is(':visible'))
+					{
+						$("#"+menu_id).slideUp();
+					}
+					else
+					{
+							$("#"+menu_id).slideDown();
+					}
+			}
+			
+			
+			function logout()
+			{
+				window.localStorage.removeItem('admin_id');
+				window.location="/admin";
+			}
+		</script>
+	</body>
+</html>

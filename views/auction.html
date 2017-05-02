@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+	<head>
+	   <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+		<title>
+			LIVE-AUCTION
+		</title>
+	  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+		
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<style>
+			
+			@media (min-width: 991px) {
+				main {
+					padding-left: 120px;
+				}
+			}
+			
+			.dontbreakout {
+
+				overflow-wrap: break-word;
+				word-wrap: break-word;
+
+				-ms-word-break: break-all;
+				word-break: break-all;
+				word-break: break-word;
+
+				-ms-hyphens: auto;
+				-moz-hyphens: auto;
+				-webkit-hyphens: auto;
+				hyphens: auto;
+			}
+		</style>
+	</head>
+	
+	<body class="light-blue lighten-3" id="main_body" ng-app="main" ng-controller="getId" onload="check()">
+	 <nav style="background:#083045">
+    <div class="nav-wrapper">
+		<ul class="right">
+			<a href="/main" style="padding:2%;color:#EED369">Home</a>
+		</ul>
+		<a href="#" data-activates="mobile-demo" class="button-collapse white-text"><i class="material-icons">menu</i></a>
+      
+	    <ul  class="side-nav fixed teal darkeen-1"> <br />
+    
+			<div style="text-align:center;" ng-controller="displayId" >
+				<h6 style="color:#083045">
+					{{user_name}}
+				</h6>
+			</div> 
+			<li>
+				<br>
+			</li>
+			<li style="color:#083045">
+				<a href="#!">Online Auctioneers: <span id="ac_count"></span></a>
+			</li>
+		</ul>
+	
+		<ul id="mobile-demo" class="side-nav yellow lighten-1"> <br />
+    
+			<div style="text-align:center;" >
+				<h5 id="links" class="indigo-text text-lighten-2">
+				</h5>
+			</div>
+      
+		</ul>
+    </div>
+  </nav>
+			<main>
+			<br>
+				<div class="row">
+							<div id="countdown" class="right" style="padding:1%"></div>
+				</div>
+			<div id="products" style="display:none">
+				<div class="row">
+					<div class="col s12 m3 l3">
+					</div>
+					<div class="col s12 m8 l8 card teal-text" style="background:#083045" id="auc_data" ng-controller="enter_data">
+						<div class="row">
+							<div class="col s12 m6 l6">
+								<div id="prod_image">
+								<br>
+									<img class="materialboxed" ng-src="{{iurl}}" style="max-width: 100%"/>
+								</div>
+							</div>
+							<div class="col s12 m6 l6">
+							<br>
+								<div id="prod_data " class="teal-text">
+									<h6 class="light" style="font-size:1.5em;">Product Name: <span class="light white-text text-lighten-3 dontbreakout">{{name}}</span></h6>
+									<h6 class="light" style="font-size:1.5em;">Description:  <span class="light white-text text-lighten-3 dontbreakout">{{desc}}</span></h6>
+									<h6 class="light" style="font-size:1.5em;">Product Base-price:  <span class="light white-text text-lighten-3 dontbreakout">Rs {{bp}}</span></h6>
+									<h6 class="light" style="font-size:1.5em;">Product Owner-name:  <span class="light white-text text-lighten-3 dontbreakout">{{owner_name}}</span></h6>
+									<h6 class="light" style="font-size:1.5em;">Owner's Contact number:  <span class="light white-text text-lighten-3 dontbreakout">{{contact}}</span></h6>
+								</div>
+								<br>
+							</div>
+						</div>
+						<br>
+						<div class="row" id="bid_d">
+								<h6 class="light">CURRENT BID: <span class="white-text" ng-bind-html="current_bid | unsafe"></span></h6> 
+						</div>
+						<br>
+							<div class="input-field col s12 m12 l12">
+								<input id="new_bid" name="new_bid" type="text" class="white-text">
+								<label for="new_bid" class="light teal-text">Place Your Bid</label>
+							</div>
+							<br>
+								<button type="button" class="btn white teal-text waves-effect waves-light" onclick="verify()">SEND</button>
+							<br>
+							<br>
+					</div>
+					
+				</div>
+			</div>
+			</main>
+			
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular-sanitize.js"></script>
+	<script>
+		function check()
+		{
+			if(window.localStorage.getItem("user_id")==null)
+			{
+				window.location.assign('/');
+			}
+			else if(window.localStorage.getItem("auction_id")==null)
+			{
+				window.location.assign('/');
+			}
+		}
+var seconds;
+var temp;
+			var socket = io();
+			var g_name;
+			socket.on('connect',function(){
+				var scope = angular.element(document.getElementById("main_body"));
+				var injector=scope.injector();
+				var service=injector.get('AuthService');
+				var auc_id=service.getAuctionId()
+				
+				var user={'id':socket.id,'name':g_name,'auction_id':auc_id};
+				socket.emit('new_user',user);
+				
+				socket.on('total_users_online',function(users){
+						obj=JSON.parse(users);
+						document.getElementById("ac_count").innerHTML=obj.length;
+				});
+
+				socket.on('new_conn',function(data){
+					Materialize.toast('New Auctioneer Arrived!',2000,'rounded');
+				});
+				
+				socket.on('left_conn',function(data){
+					Materialize.toast('One Auctioneer Left!',2000,'rounded');
+				});
+				
+				socket.on('store_data',function(data){
+					window.localStorage.setItem('auction_object',data);
+				});
+				
+				socket.on('left_time',function(data){
+						document.getElementById("countdown").innerHTML=data;
+						countdown();
+				});
+				
+				socket.on('bid_status',function(data){
+					bid_details=JSON.parse(data);
+					var scope = angular.element(document.getElementById("auc_data")).scope();
+						scope.$apply(function () {
+							if(bid_details.user!='OWNER')
+							{
+									scope.current_bid+="<p> Rs. "+bid_details.value+" specified by "+bid_details.user+" </p>";
+										Materialize.toast('New Bid Arrived',2000,'rounded');
+							}
+						});
+					window.localStorage.setItem('currentBid',bid_details.value);
+					
+				});
+				
+				socket.on('less_bid',function(data){
+					
+						Materialize.toast('Enter a higher bid ',2000,'rounded');
+				});
+		
+				socket.on('new_product',function(data){
+					d=JSON.parse(data);
+					contact=d.contact;
+					name=d.name;
+					desc=d.desc;
+					owner_name=d.owner_name;
+					bp=d.base_price;
+					iurl=d.img_url;
+					var scope = angular.element(document.getElementById("auc_data")).scope();
+						scope.$apply(function () {
+								scope.name=name;
+								scope.contact=contact;
+								scope.owner_name=owner_name;
+								scope.bp=bp;
+								scope.current_bid="<p>Rs "+bp+" specified by Owner";
+								scope.iurl=iurl;
+								scope.desc=desc;
+								$("#products").slideDown();
+						});
+				});
+				
+				socket.on('auction_finish',function(data){
+					window.localStorage.removeItem("auction_object");
+					window.location.assign('/finish');
+				});
+					
+			});
+			
+			var main=angular.module("main",[]);
+			
+			
+			main.factory('AuthService', function() {
+				var factory = {};
+		
+				factory.getId=function()
+								{
+									if(window.localStorage.getItem('user_id')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('user_id');
+									}
+									
+								};
+
+				factory.getAuctionId=function()
+								{
+									if(window.localStorage.getItem('auction_id')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('auction_id');
+									}
+									
+								};	
+
+				factory.getUname=function()
+								{
+									if(window.localStorage.getItem('user_name')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('user_name');
+									}
+									
+								};	
+						
+				return factory;
+			});
+	
+
+			main.controller('getId',function($scope,AuthService){				
+			});
+			
+				main.filter('unsafe', function($sce) { return $sce.trustAsHtml; });
+				
+				main.controller('enter_data',function($scope){
+					$scope.iurl='';
+					$scope.contact='';
+					$scope.name='';
+					$scope.owner_name='';
+					$scope.desc='';
+					$scope.bp='';
+					$scope.current_bid='';
+				});
+			
+				main.controller('displayId',function($scope,AuthService){
+					$scope.user_name=AuthService.getUname();
+					g_name=$scope.user_name;
+				});
+			
+		
+			function countdown() {
+				timeArray = document.getElementById("countdown").innerHTML.split(':')
+				seconds = timeToSeconds(timeArray);
+				if (seconds == '') {
+					temp = document.getElementById('countdown');
+					temp.innerHTML = "00:00";
+						timeOut();			
+					return;
+				}
+				seconds--;
+				temp = document.getElementById('countdown');
+				temp.innerHTML= secondsToTime(seconds);
+				timeoutMyOswego = setTimeout(countdown, 1000);
+    
+			}
+			function timeToSeconds(timeArray) {  
+				var minutes = (timeArray[0] * 1);
+				var seconds = (minutes * 60) + (timeArray[1] * 1);
+				return seconds;
+			}
+
+			function secondsToTime(secs) {
+				var hours = Math.floor(secs / (60 * 60));
+				hours = hours < 10 ? '0' + hours : hours;
+				var divisor_for_minutes = secs % (60 * 60);
+				var minutes = Math.floor(divisor_for_minutes / 60);
+				minutes = minutes < 10 ? '0' + minutes : minutes;
+				var divisor_for_seconds = divisor_for_minutes % 60;
+				var seconds = Math.ceil(divisor_for_seconds);
+				seconds = seconds < 10 ? '0' + seconds : seconds;
+				return  minutes + ':' + seconds;
+			}
+
+			
+			function timeOut()
+			{	
+				data_to_send=window.localStorage.getItem('auction_object');
+				window.localStorage.removeItem("auction_object");
+				var timeout_data={'id':socket.id,'auction_data':data_to_send};
+				$("#products").slideUp();
+				socket.emit('timeout',timeout_data);
+			}
+			
+			function verify()
+			{
+				var value=document.getElementById("new_bid").value;
+				if(value=='')
+				{
+					Materialize.toast('Enter a bid first',2000,'rounded');
+				}
+				else if(value.match(/\D/g))
+				{
+					Materialize.toast('Not a Valid Number',2000,'rounded');
+				}
+				else
+				{
+					if(window.localStorage.getItem('currentBid')==null)
+					{
+						socket.emit('new_bid',value);
+					}
+					else
+					{
+						var current=window.localStorage.getItem('currentBid');
+						if(parseInt(value)<=parseInt(current))
+						{
+							Materialize.toast('Your Bid is not greater than current Bid',2000,'rounded');
+						}
+						else
+						{
+							socket.emit('new_bid',value);
+						}
+					}
+				}
+				
+				$("#new_bid").val('');
+			}
+			
+			$(document).ready(function(){
+    $('.materialboxed').materialbox();
+  });
+			
+		</script>
+	</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+	   <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+		<title>
+			ERROR
+		</title>
+	  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+
+ 
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	
+	</head>
+	
+	<body style="background:#083045" ng-app="errorapp">
+		<br><br><br><br><br>
+		
+		<div class="row">
+		<div class="col s12 m3 l3"></div>
+			<div class="card col s12 m6 l6" style="background:#EED369;width:50%;color:#083045" ng-controller="getUrlCtrl" >
+				<br>
+				<h4 class="center light">Product Submission is closed!</h4>
+				<br>
+				<h5 class="center light">Products Limit is exceeded .No more products will be accepted for this auction.</h5>
+				<br>
+				<div class="center">
+					<a href="{{url}}"><button class="btn waves-light waves-effect" style="background:#083045;color:#EED369">GO BACK</button></a>
+				</div>
+				<br>
+				</br>
+			</div>
+		<div class="col s12 m3 l3"></div>
+		</div>
+	
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+	
+	</body>
+	
+	<script>
+		var errorapp=angular.module("errorapp",[]);
+		
+		errorapp.controller('getUrlCtrl',function($scope){
+			$scope.url=document.referrer;
+		});
+	</script>
+</html>

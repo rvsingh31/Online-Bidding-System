@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	   <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+   	<title>
+			Online Bidding System
+	</title>
+		
+	<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+
+ 
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	</head>
+	
+	
+	<body class="light-blue lighten-1">
+    <nav class="purple darken-4">
+		<div class="nav-wrapper center">
+			<a href="#" class="center white-text">Online Bidding System</a>
+			<ul id="nav-mobile" class="right hide-on-med-and-down">
+			</ul>
+		</div>
+	</nav>
+	
+	<br>
+	<br>
+		<div class="center">
+			<div class="row">
+				<div class="col l4 m3 s12">
+				</div>
+				
+				<div class="col l4 m6 s12 card purple darken-4 white-text"  ng-app="reg">
+					<br>
+					<div id="register" ><h5 class="white-text">REGISTER</h5>
+						<form method="post" ng-controller="regCtrl" id="register_form">
+							<div class="input-field col s12 m12">
+								<input id="fname" ng-model="new_form.fname" name="fname" type="text" class="white-text">
+								<label for="fname">First Name</label>
+							</div>
+							<div class="input-field col s12 m12">
+								<input id="lname" ng-model="new_form.lname" name="lname" type="text" class="white-text">
+								<label for="lname">Last Name</label>
+							</div>
+							<div class="input-field col s12 m12">
+									<input id="uname" ng-model="new_form.uname" name="uname" type="text" class="white-text" onblur="check_username()">
+									<label for="uname">Username</label>
+							</div>
+							<div class="input-field col s12 m12">
+								<input id="password" ng-model="new_form.password" name="password" type="password" class="white-text">
+								<label for="password">Password</label>
+							</div>
+							<div class="input-field col s12 m12">
+								<input id="contact" ng-model="new_form.contact" name="contact" type="text" class="white-text">
+								<label for="contact">Contact</label>
+							</div>
+							<button class="btn waves-effect waves-light white purple-text"  type="button" onclick="validate_r()">Register</button>
+						</form>
+						<br>
+						<br>
+						<h6 class="white-text">Already Registered?<span  style="cursor:pointer" id="si" class="yellow-text" >SIGN IN</span></h6>
+						<br>
+					</div>
+					<div id="signin" style="display:none"> 
+							<br>
+							<h5 class="white-text">Login</h5>
+							<form ng-controller="signCtrl" method="post" id="signin_form">
+								<div class="input-field col s12 m12">
+									<input id="rfname" name="rname" ng-model="details.rname" type="text" class="white-text">
+									<label for="rfname">UserName</label>
+								</div>
+								<div class="input-field col s12 m12">
+									<input id="rpassword" name="rpassword" ng-model="details.rpassword" type="password" class="white-text">
+									<label for="rpassword">Password</label>
+								</div>
+								
+								<button class="btn waves-effect waves-light white purple-text" type="button" onclick="validate_s()">SIGN IN</button>
+								<br>
+								<br>
+								<h6 class="white-text">Don't have an account ?<span id="si2" style="cursor:pointer" class="yellow-text" >SIGN UP </span></h6>
+							</form>
+						<br>
+					</div>
+				</div>
+				<div class="col l4 m3 s12">
+				</div>
+			</div>
+		</div>
+			
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+  
+	<script>
+	
+	
+	var reg = angular.module("reg", []);
+		
+	  reg.controller('signCtrl',function($http,$scope){
+			$scope.details={
+				rname:'',
+				rpassword:''
+			};
+			
+			$scope.check=function()
+						{	
+									$http({
+											url:'/sign',
+											method:'POST',
+											data:$scope.details
+										}).success(function(resp){
+												if(resp.location!='')
+												{
+													if(resp.t!='')
+													{
+														window.localStorage.setItem('user_id',resp.t);
+														window.localStorage.setItem('user_name',resp.uname);
+														window.location = '/main';
+													}
+													
+												
+												}
+												else
+												{
+													Materialize.toast(resp.msg,2000,'rounded');
+												}
+									
+										})
+										.error(function() {	
+											Materialize.toast('Error Occured .!',2000,'rounded');
+										})
+						}
+			
+		
+	  });
+		reg.controller('regCtrl', function($http,$scope) {
+			$scope.new_form={
+				fname:'',
+				lname:'',
+				uname:'',
+				password:'',
+				contact:''
+			};
+		
+			
+			$scope.sendForm=function()
+							{
+									$http({
+											url:'/register',
+											method:'POST',
+											data:$scope.new_form
+										}).success(function(resp){
+											Materialize.toast(resp.msg,2000,'rounded');
+										})
+										.error(function() {	
+											Materialize.toast('Error Occured .!',2000,'rounded');
+										})
+							};
+							
+         });
+	
+	
+		$(document).ready(function(){
+			$("#si").on('click',function(){
+				if($("#register").is(":visible"))
+				{
+					$("#register").fadeOut();
+						setTimeout(function(){
+						$("#signin").fadeIn();
+					},400);
+				}
+				else
+				{
+					$("#signin").fadeIn();
+				}
+				
+			});
+			
+			$("#si2").on('click',function(){
+				if($("#signin").is(":visible"))
+				{
+					$("#signin").fadeOut();
+						setTimeout(function(){
+						$("#register").fadeIn();
+					},400);
+				}
+				else
+				{
+					$("#register").fadeIn();
+				}
+			});
+		});
+		
+		var uname_error=true;
+		
+		function check_username()
+		{
+			var un=document.getElementById("uname").value;
+			var data={};
+			data.username=un;
+			if(un!="")
+			{
+
+				$.ajax({
+						type: 'POST',
+						data: JSON.stringify(data),
+				        dataType:'json',
+						contentType: 'application/json',
+                        url: '/checkuser',						
+                        success: function(data){
+						   if(data.ret=="yes")
+						   {
+								uname_error=true;
+						   }
+						   else
+						   {
+								uname_error=false;
+						   }
+						}
+				});
+			
+			}
+		}
+		
+		function validate_r()
+		{
+			var fname=document.getElementById("fname").value;
+			var lname=document.getElementById("lname").value;
+			var uname=document.getElementById("uname").value;
+			var password=document.getElementById("password").value;
+			var contact=document.getElementById("contact").value;
+			
+			if(fname=='' || lname=='' || uname=='' || password=='' || contact=='')
+			{
+				Materialize.toast('All the Fields are mandatory',2000,'rounded');
+			}
+			else if(uname_error)
+			{
+				Materialize.toast('Username already Exists',2000,'rounded');
+			}
+			else
+			{
+				
+				var scope = angular.element(document.getElementById("register_form")).scope();
+				scope.$apply(function () {
+						scope.sendForm();
+				});
+			}
+		}
+		
+		function validate_s()
+		{
+			var rname=document.getElementById("rfname").value;
+			var rpassword=document.getElementById("rpassword").value;
+			
+			if(rfname=='' || rpassword=='')
+			{
+				Materialize.toast('All the Fields are mandatory',2000,'rounded');
+			}
+			else
+			{
+				var scope = angular.element(document.getElementById("signin_form")).scope();
+				scope.$apply(function () {
+						scope.check();
+				});
+			}
+		}
+	</script>
+  
+  </body>
+</html>

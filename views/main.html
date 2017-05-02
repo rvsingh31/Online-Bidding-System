@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+	<head>
+	   <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.min.js"></script>
+		<title>
+			Add Product
+		</title>
+	  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+
+ 
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	
+	</head>
+	
+	<body class="light-blue lighten-1" ng-app="main" ng-controller="validate" onload="check()">
+		
+		<nav style="background:#083045">
+			<div class="nav-wrapper">
+				<a href="/main" style="padding:2%;color:#EED369">Home</a>
+				<ul id="nav-mobile" class="right hide-on-med-and-down">
+				</ul>
+			</div>
+		</nav>
+	
+		<br>
+		<br>
+		
+		<div class="row">
+		<div class="col s12 m1 l1"></div>
+			<div class="col s12 m10 l10 card " style="background:#083045;color:#EED369">
+				
+				<div id="terms">
+					<h6 class="center">	TERMS & CONDITIONS</h6>
+					<br>
+					<hr class="center light" style="width:50%;color:#EED369"></hr>
+					<br>
+						<p style="padding:0.5%">&#8226; &nbsp;You can list out your product for sale in the Auction.</p>
+						<p style="padding:0.5%">&#8226; &nbsp;You will be required to enter the product details along with a picture of the respective photo.</p>
+						<p style="padding:0.5%">&#8226; &nbsp;You can enter more than one products too.</p>
+						<p style="padding:0.5%">&#8226; &nbsp;Once the admin has closed the uploading process , you cannot upload your product.</p>
+						<p style="padding:0.5%">&#8226; &nbsp;Also,your product will not be directly listed in the auction ,it will be sent to the admin for approval, it is only after the approval of admin, your product will be presented in the auction.</p>
+					<br>
+					<div id="fill_div" class="center">
+						<button class="btn waves-effect waves-light" style="background:#EED369;color:#083045" id="fill">Sell Your Product</button>
+					</div>
+				
+				</div>
+				<div id="place_form" style="display:none">
+					<div id="fillback_div" >
+						<h6 style="color:#EED369;cursor:pointer" id="fillback">CLOSE</h6>
+					</div>
+						<br>
+					<h6 class="white-text text-lighten-1 center">Enter your Product details</h6>
+					<br>
+					<form method="post" ng-controller="genCtrl" id="all_form" action='/store' enctype="multipart/form-data">
+						<div id="first_step">
+							<div class="input-field col s12">
+								<input type="text" name="number" ng-model="number" id="number">
+								<label for="number" style="color:#EED369">How many products you want to sell?</label>
+							</div>
+							<button id="first_btn" class="btn waves-effect waves-light right" style="background:#EED369;color:#083045" type="button" ng-click="generate()">NEXT</button>
+						</div>
+						<div id="second_step" style="display:none">
+						</div>
+					</form>
+				</div>
+				<br>
+			</div>
+				<div class="col s12 m1 l1"></div>
+		</div>
+		
+		
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+		<script>
+		
+		function check()
+		{
+			if(window.localStorage.getItem("user_id")==null)
+			{
+				window.location.assign('/');
+			}
+		}
+		
+			$(document).ready(function(){
+				$("#fill").click(function(){
+					$("#terms").slideUp();
+					setTimeout(function(){
+						$("#place_form").slideDown();
+					},300);
+				});
+				
+				$("#fillback").on('click',function(){
+					document.getElementById("second_step").innerHTML="";
+					$("#second_step").hide();
+					$("#first_step").show();
+					$("#place_form").slideUp();
+					setTimeout(function(){
+						$("#terms").slideDown();
+					},300);
+				});
+			});
+				var data;
+										
+			var main=angular.module('main',[]);
+			
+			main.controller('validate',function($scope,AuthService){
+				$scope.check=function(){
+					if(AuthService.getId()=="no")
+					{
+						window.location.assign('/');
+					}
+				};
+			});
+			
+			main.factory('AuthService', function() {
+				var factory = {};
+		
+				factory.getId=function()
+								{
+									if(window.localStorage.getItem('user_id')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('user_id');
+									}
+									
+								};
+
+				factory.getAuctionId=function()
+								{
+									if(window.localStorage.getItem('auction_id')==null)
+									{
+										return "no";
+									}
+									else
+									{
+										return window.localStorage.getItem('auction_id');
+									}
+									
+								};								
+						
+				return factory;
+			}); 
+			
+			main.controller('genCtrl',function($scope,AuthService){
+				$scope.number='';
+				
+				$scope.generate=function()
+									{
+										if($scope.number=='')
+										{
+											Materialize.toast('Enter a specific number!',2000,'rounded');
+										}
+										else
+										{
+											document.getElementById("second_step").innerHTML="";
+											data="";
+											for(var x=1;x<=$scope.number;x++)
+											{
+												data+="<fieldset style='color:#EED369'><legend class='white-text' style='font-size:1.5em'>Product "+x+"</legend>";
+													generate(x);
+												data+="</fieldset><br>";
+											}
+											data+="<input type='hidden' name='user_id' value='"+AuthService.getId()+"'>";
+											data+="<input type='hidden' name='auction_id' value='"+AuthService.getAuctionId()+"'>";
+											data+="<button class='btn waves-effect waves-light right' type='button' onclick='validate_form()' style='background:#EED369;color:#083045' id='add_btn'>Submit</button><br>";
+											document.getElementById("second_step").innerHTML=data;
+											setTimeout(function(){$("#first_step").slideUp();},250);
+											setTimeout(function(){$("#second_step").slideDown();},500);
+										}
+									};
+									
+			});
+			
+			function generate(id)
+			{
+				data+="<div id='div"+id+"' class='col s12'><div class='input-field col s12'>	<input type='text' name='name"+id+"' id='name"+id+"'><label for='name"+id+"' style='color:#EED369'>Product Name</label></div>";
+				data+="<div class='input-field col s12'>	<input type='text' name='desc"+id+"' id='desc"+id+"'><label for='desc"+id+"' style='color:#EED369'>Product Description</label></div>";
+				data+="<div class='input-field col s12'>	<input type='text' name='price"+id+"' id='price"+id+"'><label for='price"+id+"' style='color:#EED369'>Product Base Price</label></div>";
+				data+="<div class='file-field input-field col s12'><div class='btn' style='background:#EED369;color:#083045' ><span>File</span><input type='file' name='image"+id+"'  id='image"+id+"'></div><div class='file-path-wrapper'><input class='file-path validate' type='text'></div></div></div>";
+			}
+			
+			
+			function validate_form()
+			{
+				var total;
+				var scope = angular.element(document.getElementById("all_form")).scope();
+				scope.$apply(function () {
+						total=scope.number;
+				});
+				var error=0;
+				for(var t=1;t<total;t++)
+				{	
+					var input1=document.getElementById("name"+t).value;
+					var input2=document.getElementById("desc"+t).value;
+					var input3=document.getElementById("price"+t).value;
+					var input4=document.getElementById("image"+t).value;
+					
+					if(input1 =='' ||input2=='' || input3=='' || input4=='' )
+					{
+						error=1;
+					}
+				}
+				if(error==1)
+				{
+							Materialize.toast('All fields are necessary.',2000);
+				}
+				else
+				{
+					document.getElementById('all_form').submit();
+				}
+			}
+		</script>
+	</body>
+</html>
